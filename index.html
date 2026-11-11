@@ -73,11 +73,13 @@ const $=s=>document.querySelector(s),iso=d=>new Date(d.getTime()-d.getTimezoneOf
 const N=v=>'₦'+Math.round(v).toLocaleString('en-NG'),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sum=a=>a.reduce((s,e)=>s+e.a,0),fee=a=>a.reduce((s,e)=>s+(+e.fee||0),0),qty=a=>a.reduce((s,e)=>s+(e.q||0),0);
 const by=(a,f)=>{const m={};a.forEach(e=>{const k=f(e);m[k]=m[k]||[0,0];m[k][0]+=e.a;m[k][1]++});return Object.entries(m).map(([k,v])=>[k,v[0],v[1]]).sort((a,b)=>b[1]-a[1])};
+try{const th=localStorage.getItem('wig.theme');if(th)document.documentElement.dataset.theme=th}catch(e){}
 let D=[];const sb=SUPABASE_URL.startsWith('PASTE')?null:supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
 const S={v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:SRC[0],bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:''}};
 function rng(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=(a,b)=>[d10(new Date(a,b,1)),d10(new Date(a,b+1,0))];return{m:f(y,m),lm:f(y,m-1),'3m':[d10(new Date(y,m-2,1)),d10(n)],y:[y+'-01-01',y+'-12-31'],all:['0','9']}[S.p]}
 const inP=e=>{const r=rng();return e.d>=r[0]&&e.d<=r[1]},T=(L,t)=>L.filter(e=>e.t==t);
-const hdr=p=>'<header>'+(S.authed?'<button class="x" data-act="out" style="float:right">Sign out</button>':'')+'<h1>Personal Finance Tracker</h1><p>Every naira, traced to where it went.</p></header>'+(p?'<div class="chips pl">'+Object.entries(PL).map(([k,v])=>`<button class="chip ${S.p==k?'on':''}" data-p="${k}">${v}</button>`).join('')+'</div>':'');
+const dark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme=='dark':!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+const hdr=p=>'<header><span style="float:right"><button class="x" data-act="theme" style="font-size:18px" aria-label="Switch to '+(dark()?'light':'dark')+' mode">'+(dark()?'☀️':'🌙')+'</button>'+(S.authed?'<button class="x" data-act="out">Sign out</button>':'')+'</span><h1>Personal Finance Tracker</h1><p>Every naira, traced to where it went.</p></header>'+(p?'<div class="chips pl">'+Object.entries(PL).map(([k,v])=>`<button class="chip ${S.p==k?'on':''}" data-p="${k}">${v}</button>`).join('')+'</div>':'');
 const fmtD=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d).toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short',year:'numeric'})};
 const lbl=e=>PC.includes(e.cat)||e.cat=='Airtime'||e.cat=='Data'?e.cat+': '+e.sub:e.sub||e.note||e.cat;
 const sh=v=>v>=1e6?(v/1e6).toFixed(1)+'m':v>=1000?Math.round(v/1000)+'k':Math.round(v);
@@ -100,31 +102,35 @@ function subCard(ex,X){const c=S.sel,cx=ex.filter(e=>e.cat==c),V=sum(cx),u=C[c].
  h+=it.length?it.map(([n,v,k])=>`<div class="srow${v?'':' z'}"><div class="rl"><span>${esc(n)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:${col(c)}"></i></span><small>${k?`${Math.round(v/V*100)}% of ${esc(c)}, ${k} ${k>1?'purchases':'purchase'}, ${N(v/k)} average`:'Nothing bought in this period'}</small></div>`).join(''):'<div class="empty">Nothing spent on this category in this period.</div>';
  if(c=='Data'){const pb=by(cx.filter(e=>e.note),e=>e.sub+', '+e.note);if(pb.length)h+='<h3>By plan size</h3>'+pb.map(([a,v,k])=>`<div class="ln"><span>${esc(a)} <small>${k}×</small></span><b>${N(v)}</b></div>`).join('')}
  return h+'</section>'}
-function vHome(){const L=D.filter(inP),ex=T(L,'x'),I=sum(T(L,'i')),W=sum(T(L,'w')),X=sum(ex),cats=by(ex,e=>e.cat);
+function feeCard(L){const fx=L.filter(e=>e.fee>0),F=fee(L),X=sum(T(L,'x'));
+ if(!fx.length)return '<section class="card"><h2>Transaction fees</h2><p class="m">No fees recorded in this period. Add a fee when you save an expense.</p></section>';
+ const tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`,bb=BANKS.map(b=>[b,fee(fx.filter(e=>e.bank==b)),fx.filter(e=>e.bank==b).length]).filter(x=>x[1]),bc=by(fx.map(e=>({cat:e.cat||'Old withdrawals',a:+e.fee})),e=>e.cat),mx=bc[0][1];
+ return `<section class="card"><h2>Transaction fees</h2><p class="m">What you paid to move money, in this period.</p><div class="tiles">${tile('Total fees',N(F))}${tile('Share of all spending',(F/(X+F)*100).toFixed(1)+'%')}${tile('Fees charged',fx.length)}${tile('Average fee',N(F/fx.length))}</div><h3>By bank</h3>${bb.map(([b,v,n])=>`<div class="ln"><span>${b} <small>${n}×</small></span><b>${N(v)}</b></div>`).join('')}<h3>By category</h3>${bc.map(([c,v,n])=>`<div class="srow"><div class="rl"><span>${C[c]?C[c].e+' ':''}${esc(c)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:${C[c]?col(c):'var(--acc)'}"></i></span><small>${n} ${n>1?'fees':'fee'}</small></div>`).join('')}</section>`}
+function vHome(){const L=D.filter(inP),ex=T(L,'x'),I=sum(T(L,'i')),X=sum(ex),F=fee(L),cats=by(ex,e=>e.cat);
  if(!C[S.sel])S.sel=cats[0]?cats[0][0]:CK[0];
- const cash=sum(T(D,'w'))-sum(T(D,'x')),bk=BANKS.map(b=>[b,sum(T(D,'i').filter(e=>e.bank==b))-sum(T(D,'w').filter(e=>e.bank==b))-fee(T(D,'w').filter(e=>e.bank==b))]);
- let h=hdr(1)+`<section class="hero"><span>Spent, ${PL[S.p].toLowerCase()}</span><div class="big">${N(X)}</div>`+(cats.length?`<div class="stack">${cats.map(([c,v])=>`<i style="flex:${v};background:${col(c)}"></i>`).join('')}</div><div class="leg">${cats.slice(0,5).map(([c,v])=>`<span data-cat="${esc(c)}" style="cursor:pointer"><i style="background:${col(c)}"></i>${esc(c)} ${Math.round(v/X*100)}%</span>`).join('')}</div>`:'<p>No spending logged for this period yet.</p><button class="btn" data-v="a">Log an expense</button>')+'</section>';
- h+=`<div class="tiles"><div class="t"><small>Income</small><b>${N(I)}</b></div><div class="t"><small>Withdrawn</small><b>${N(W)}</b></div><div class="t"><small>Cash in hand</small><b class="${cash<0?'neg':''}">${N(cash)}</b></div><div class="t"><small>Left in banks</small><b>${N(bk.reduce((a,b)=>a+b[1],0))}</b></div></div>`;
- h+=`<section class="card"><h2>Bank balances</h2><p class="m">Income received minus withdrawals and their charges, all time.</p>${bk.map(([b,v])=>`<div class="ln"><span>${b}</span><b>${N(v)}</b></div>`).join('')}</section>`;
+ const o=(a,b)=>a.filter(e=>e.bank==b),bal=BANKS.map(b=>{const x=o(T(D,'x'),b),w=o(T(D,'w'),b);return[b,sum(o(T(D,'i'),b))-sum(x)-fee(x)-sum(w)-fee(w)]}),tot=X+F||1;
+ let h=hdr(1)+`<section class="hero"><span>Spent, ${PL[S.p].toLowerCase()}</span><div class="big">${N(X)}</div>`+(F?`<p style="margin:-6px 0 12px;opacity:.8">plus ${N(F)} in transaction fees</p>`:'')+(cats.length?`<div class="stack">${cats.map(([c,v])=>`<i style="flex:${v};background:${col(c)}"></i>`).join('')}</div><div class="leg">${cats.slice(0,5).map(([c,v])=>`<span data-cat="${esc(c)}" style="cursor:pointer"><i style="background:${col(c)}"></i>${esc(c)} ${Math.round(v/X*100)}%</span>`).join('')}</div>`:'<p>No spending logged for this period yet.</p><button class="btn" data-v="a">Log an expense</button>')+'</section>';
+ h+=`<div class="tiles"><div class="t"><small>Income</small><b>${N(I)}</b></div><div class="t"><small>Spent</small><b>${N(X)}</b></div><div class="t"><small>Transaction fees</small><b>${N(F)}</b></div><div class="t"><small>Left in banks</small><b>${N(bal.reduce((a,b)=>a+b[1],0))}</b></div></div>`;
+ h+=`<section class="card"><h2>Banks</h2><p class="m">Balance is income received minus everything spent from the bank, fees included, all time. Bars show where this period's money came from.</p>${bal.map(([b,v])=>{const x=o(ex,b),t=sum(x)+fee(x);return `<div class="srow"><div class="rl"><span>${b}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${t/tot*100}%;background:var(--pri)"></i></span><small>This period: ${N(sum(x))} spent${fee(x)?', '+N(fee(x))+' in fees':''}</small></div>`}).join('')}</section>`;
  if(cats.length)h+=`<section class="card"><h2>Spending by category</h2><p class="m">Tap a slice or a bar to see its subcategories below.</p>${donut(cats,X)}<div style="margin-top:14px">${cats.map(([c,v,n])=>`<button class="crow" data-cat="${esc(c)}"><span class="rl"><span>${C[c].e} ${esc(c)}</span><b>${N(v)}</b></span><span class="tr"><i style="width:${v/cats[0][1]*100}%;background:${col(c)}"></i></span><small>${Math.round(v/X*100)}% of spending, ${n} ${n>1?'entries':'entry'}</small></button>`).join('')}</div></section>`;
  h+=`<section class="card"><h2>Last 6 months by category</h2><p class="m">Each bar is one month of spending, split by category.</p>${stacked()}</section>`;
- return h+subCard(ex,X)}
+ return h+feeCard(L)+subCard(ex,X)}
 function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
  const ch=(key,arr,cur)=>`<div class="chips">${arr.map(x=>`<button class="chip ${cur==x?'on':''}" data-set="${key}=${x}">${x}</button>`).join('')}</div>`;
- let h=hdr()+`<div class="seg">${[['x','Expense'],['i','Income'],['w','Withdraw']].map(([a,b])=>`<button class="${k==a?'on':''}" data-set="k=${a}">${b}</button>`).join('')}</div>`;
+ let h=hdr()+`<div class="seg">${[['x','Expense'],['i','Income']].map(([a,b])=>`<button class="${k==a?'on':''}" data-set="k=${a}">${b}</button>`).join('')}</div>`;
  if(k=='i')h+='<label>Income source</label>'+ch('src',SRC,f.src)+'<label>Received into</label>'+ch('bank',BANKS,f.bank);
- else if(k=='w')h+='<label>Spent from (bank withdrawn from)</label>'+ch('bank',BANKS,f.bank);
- else{h+=`<label>Category</label><div class="chips">${CK.map(x=>`<button class="chip ${f.cat==x?'on':''}" data-set="cat=${x}">${C[x].e} ${x}</button>`).join('')}</div>`;
+  else{h+=`<label>Category</label><div class="chips">${CK.map(x=>`<button class="chip ${f.cat==x?'on':''}" data-set="cat=${x}">${C[x].e} ${x}</button>`).join('')}</div>`;
+  h+='<label>Paid from (bank)</label>'+ch('bank',BANKS,f.bank);
   if(c.s)h+='<label>'+(c.p||f.cat=='Airtime'?'Network':'Item')+'</label>'+ch('sub',c.s,f.sub);
   if(c.p&&f.sub)h+='<label>Plan size</label>'+ch('note',c.p[f.sub],f.note);
   if(c.q)h+=`<label>${c.ql}</label><input data-f="q" inputmode="decimal" value="${esc(f.q)}" placeholder="0">`;
   if(!c.p)h+=`<label>${c.f||'Note (optional)'}</label><input data-f="note" value="${esc(f.note)}" placeholder="${c.f?'Type here':'e.g. bought at the market'}">`}
- h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k=='w'?`<label>Transfer/withdrawal charges (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'withdrawal'}</button>`;
+ h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k=='x'?`<label>Transaction fee (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'withdrawal'}</button>`;
  return h}
 function add(){const f=S.f,a=parseFloat(String(f.a).replace(/,/g,''));if(!(a>0))return toast('Enter an amount');
  const e={id:Date.now()+Math.random().toString(36).slice(2,5),t:f.k,d:f.d||dt(),tm:f.tm||tm(),a};
- if(f.k=='i'){e.src=f.src;e.bank=f.bank}else if(f.k=='w'){e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe}
- else{const c=C[f.cat];if(c.s&&!f.sub)return toast('Pick an item');e.cat=f.cat;e.sub=f.sub;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.f&&!e.note&&f.cat=='Personal Accessories')return toast(c.f)}
+ if(f.k=='i'){e.src=f.src;e.bank=f.bank}
+ else{const c=C[f.cat];if(c.s&&!f.sub)return toast('Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.f&&!e.note&&f.cat=='Personal Accessories')return toast(c.f)}
  D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';toast('Saved')}
 function render(){try{localStorage.setItem('wig.ui',JSON.stringify({v:S.v,p:S.p,sel:S.sel}))}catch(e){}
  $('#app').innerHTML=S.authed?{h:vHome,a:vAdd}[S.v]():vAuth();document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==(S.v=='c'?'r':S.v)))}
@@ -138,6 +144,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-v],[data-c
  else if(d.act=='save')add();
  else if(d.act=='signin'||d.act=='signup'){auth(d.act);return}
  else if(d.act=='eye'){const i=$('#pw'),sh=i.type=='password';i.type=sh?'text':'password';b.innerHTML=sh?EYEOFF:EYE;b.setAttribute('aria-label',sh?'Hide password':'Show password');return}
+ else if(d.act=='theme'){const nt=dark()?'light':'dark';document.documentElement.dataset.theme=nt;try{localStorage.setItem('wig.theme',nt)}catch(x){}}
  else if(d.act=='out'){sb.auth.signOut().then(()=>location.reload());return}
  render()});
 const EYE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',EYEOFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.9 10.9 0 0 1 12 19c-6.4 0-10-7-10-7a18.6 18.6 0 0 1 5.1-5.9M9.9 4.2A9.9 9.9 0 0 1 12 4c6.4 0 10 7 10 7a18.5 18.5 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/></svg>';
