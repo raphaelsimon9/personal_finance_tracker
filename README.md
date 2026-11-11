@@ -2,7 +2,7 @@
 
 > Every naira, traced to where it went.
 
-A mobile-first personal finance web app for recording income and expenses in naira (₦), tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so your records are stored in your own account and sync across your phone and laptop.
+A mobile-first personal finance web app for recording income and expenses, tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so records are stored in your own account and sync across your phone and laptop.
 
 ## Contents
 
