@@ -66,8 +66,8 @@ const C={Food:{e:'🍚',s:'Rice Bag,Beans,Meat,Fish,Garri,Eggs,Tomatoes,Sachet T
 Water:{e:'💧',q:'Bags',u:'bag',ql:'How many bags?'},Snacks:{e:'🍪',s:['Biscuits','Golden Morn','Milk']},
 Toiletries:{e:'🧼',s:'Washing Soap,Kids Soap,Adult Soap,Kids TPaste,Adult TPaste,TBrush,Perfume,Roll On,Body Spray,Shampoo,Conditioner,Vaseline,Hair Cream'.split(',')},
 Gas:{e:'🔥',q:'Kg',u:'kg',ql:'How many kg?'},Electricity:{e:'💡'},'Personal Expenses':{e:'⌚',f:'Which accessory?'},
-Clothes:{e:'👕',s:P},Shoes:{e:'👟',s:P},Rent:{e:'🏠'},'School Fees and Books':{e:'🎓',s:['Leroy','Adela']},Appliances:{e:'🔌',f:'Which appliance?'},Airtime:{e:'📱',s:['MTN','Glo','Airtel']},Data:{e:'📶',s:['MTN','Glo','Airtel'],p:PLN}};
-const CK=Object.keys(C),COL=['#F2B73A','#FF7A66','#6CB6FF','#B79BFF','#4ADDB8','#FF9FC2','#C8D46A','#FFB26B','#9FB4C7','#E86BA8','#7BE0A0','#5ED0D6','#8AA2FF','#F5E960'],col=c=>COL[CK.indexOf(c)%COL.length];
+Clothes:{e:'👕',s:P},Shoes:{e:'👟',s:P},Rent:{e:'🏠'},'School Fees and Books':{e:'🎓',s:['Leroy','Adela']},Appliances:{e:'🔌',f:'Which appliance?'},Airtime:{e:'📱',s:['MTN','Glo','Airtel'],sl:'Network'},Data:{e:'📶',s:['MTN','Glo','Airtel'],sl:'Network',p:PLN,pl:'Plan size',pt:'By plan size'},'Health & Wellness':{e:'💊',s:['Medicine'],p:{Medicine:['Kids','Adult']},pl:'Who is it for?',pt:'Kids or Adult'}};
+const CK=Object.keys(C),COL=['#F2B73A','#FF7A66','#6CB6FF','#B79BFF','#4ADDB8','#FF9FC2','#C8D46A','#FFB26B','#9FB4C7','#E86BA8','#7BE0A0','#5ED0D6','#8AA2FF','#F5E960','#9BE564'],col=c=>COL[CK.indexOf(c)%COL.length];
 const PL={m:'This month',lm:'Last month','3m':'Last 3 months',y:'This year',all:'All time'},MN='Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
 const $=s=>document.querySelector(s),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString(),d10=d=>iso(d).slice(0,10),dt=()=>d10(new Date()),tm=()=>iso(new Date()).slice(11,16);
 const N=v=>'₦'+Math.round(v).toLocaleString('en-NG'),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -100,7 +100,7 @@ function subCard(ex,X){const c=S.sel,cx=ex.filter(e=>e.cat==c),V=sum(cx),u=C[c].
  h+=`<div class="tiles" style="margin:14px 0 6px"><div class="t"><small>Spent on ${esc(c)}</small><b>${N(V)}</b></div><div class="t"><small>Share of spending</small><b>${X?Math.round(V/X*100):0}%</b></div></div>`;
  if(u&&q)h+=`<p class="m">${q} ${u}${u=='bag'&&q!=1?'s':''} bought, ${N(V/q)} per ${u}.</p>`;
  h+=it.length?it.map(([n,v,k])=>`<div class="srow${v?'':' z'}"><div class="rl"><span>${esc(n)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:${col(c)}"></i></span><small>${k?`${Math.round(v/V*100)}% of ${esc(c)}, ${k} ${k>1?'purchases':'purchase'}, ${N(v/k)} average`:'Nothing bought in this period'}</small></div>`).join(''):'<div class="empty">Nothing spent on this category in this period.</div>';
- if(c=='Data'){const pb=by(cx.filter(e=>e.note),e=>e.sub+', '+e.note);if(pb.length)h+='<h3>By plan size</h3>'+pb.map(([a,v,k])=>`<div class="ln"><span>${esc(a)} <small>${k}×</small></span><b>${N(v)}</b></div>`).join('')}
+ if(C[c].p){const pb=by(cx.filter(e=>e.note),e=>e.sub+', '+e.note);if(pb.length)h+='<h3>'+C[c].pt+'</h3>'+pb.map(([a,v,k])=>`<div class="ln"><span>${esc(a)} <small>${k}×</small></span><b>${N(v)}</b></div>`).join('')}
  return h+'</section>'}
 function feeCard(L){const fx=L.filter(e=>e.fee>0),F=fee(L),X=sum(T(L,'x'));
  if(!fx.length)return '<section class="card"><h2>Transaction fees</h2><p class="m">No fees recorded in this period. Add a fee when you save an expense.</p></section>';
@@ -121,8 +121,8 @@ function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
  if(k=='i')h+='<label>Income source</label>'+ch('src',SRC,f.src)+'<label>Received into</label>'+ch('bank',BANKS,f.bank);
   else{h+=`<label>Category</label><div class="chips">${CK.map(x=>`<button class="chip ${f.cat==x?'on':''}" data-set="cat=${x}">${C[x].e} ${x}</button>`).join('')}</div>`;
   h+='<label>Paid from (bank)</label>'+ch('bank',BANKS,f.bank);
-  if(c.s)h+='<label>'+(c.p||f.cat=='Airtime'?'Network':'Item')+'</label>'+ch('sub',c.s,f.sub);
-  if(c.p&&f.sub)h+='<label>Plan size</label>'+ch('note',c.p[f.sub],f.note);
+  if(c.s)h+='<label>'+(c.sl||'Item')+'</label>'+ch('sub',c.s,f.sub);
+  if(c.p&&c.p[f.sub])h+='<label>'+c.pl+'</label>'+ch('note',c.p[f.sub],f.note);
   if(c.q)h+=`<label>${c.ql}</label><input data-f="q" inputmode="decimal" value="${esc(f.q)}" placeholder="0">`;
   if(!c.p)h+=`<label>${c.f||'Note (optional)'}</label><input data-f="note" value="${esc(f.note)}" placeholder="${c.f?'Type here':'e.g. bought at the market'}">`}
  h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k=='x'?`<label>Transaction fee (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'withdrawal'}</button>`;
