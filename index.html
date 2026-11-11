@@ -57,7 +57,7 @@ svg{width:100%;height:auto}svg text{fill:var(--mut);font-size:11px}.bi{fill:var(
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 const SUPABASE_URL='https://ikxqadwcsfwjzlkhzclm.supabase.co',SUPABASE_KEY='sb_publishable_n0o3uG0r6Yue-kq_05VxbQ_L45yRkh_';
-const BANKS=['UBA','Stanbic IBTC','Opay'],SRC=['Salary','Business','Sports Betting Winnings','Crypto Spot','Crypto Futures','Mutual Funds Investment','My Wife'],P=['Raphael','Gift','Leroy','Adela'],PC=['Clothes','Shoes','School Fees and Books'];
+const BANKS=['UBA','Stanbic IBTC','Opay'],SRC=['Salary','Business','Sports Betting Winnings','Crypto Spot','Crypto Futures','Mutual Funds Investment','My Wife','Other'],P=['Raphael','Gift','Leroy','Adela'],PC=['Clothes','Shoes','School Fees and Books'];
 const pl=o=>Object.fromEntries(Object.entries(o).map(([v,a])=>[v[0].toUpperCase()+v.slice(1),a.split(',')]));
 const PLN={MTN:pl({daily:'75MB,110MB,230MB,500MB,1GB,2.5GB,3.5GB','2-day':'1.5GB,2GB,2.5GB,3.2GB,4GB,5.5GB,7GB',weekly:'500MB,1GB,1.5GB,3.5GB,6GB,11GB,20GB',monthly:'2GB,2.7GB,3.5GB,7GB,10GB,12.5GB,16.5GB,18.6GB,20GB,25GB,36GB,45GB,65GB,75GB,165GB,250GB','2-month':'150GB','3-month':'480GB',yearly:'800GB'}),
 Glo:pl({daily:'45MB,125MB,275MB,1GB,2GB',night:'350MB,750MB',weekend:'875MB,2.5GB',weekly:'1.55GB,3.7GB,5.9GB,6GB,9GB','2-week':'1.1GB',monthly:'2.6GB,5.2GB,6.25GB,7.25GB,10.5GB,12.5GB,16.5GB,20.5GB,24.5GB,28GB,42GB,64GB,107GB,165GB','3-month':'355GB',yearly:'1000GB'}),
@@ -118,7 +118,7 @@ function vHome(){const L=D.filter(inP),ex=T(L,'x'),I=sum(T(L,'i')),X=sum(ex),F=f
 function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
  const ch=(key,arr,cur)=>`<div class="chips">${arr.map(x=>`<button class="chip ${cur==x?'on':''}" data-set="${key}=${x}">${x}</button>`).join('')}</div>`;
  let h=hdr()+`<div class="seg">${[['x','Expense'],['i','Income']].map(([a,b])=>`<button class="${k==a?'on':''}" data-set="k=${a}">${b}</button>`).join('')}</div>`;
- if(k=='i')h+='<label>Income source</label>'+ch('src',SRC,f.src)+'<label>Received into</label>'+ch('bank',BANKS,f.bank);
+ if(k=='i')h+='<label>Income source</label>'+ch('src',SRC,f.src)+(f.src=='Other'?`<label>Where did it come from?</label><input data-f="note" value="${esc(f.note)}" placeholder="e.g. Gift, refund, loan">`:'')+'<label>Received into</label>'+ch('bank',BANKS,f.bank);
   else{h+=`<label>Category</label><div class="chips">${CK.map(x=>`<button class="chip ${f.cat==x?'on':''}" data-set="cat=${x}">${C[x].e} ${x}</button>`).join('')}</div>`;
   h+='<label>Paid from (bank)</label>'+ch('bank',BANKS,f.bank);
   if(c.s)h+='<label>'+(c.sl||'Item')+'</label>'+ch('sub',c.s,f.sub);
@@ -133,7 +133,7 @@ function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
  return h}
 function add(){const f=S.f,a=parseFloat(String(f.a).replace(/,/g,''));if(!(a>0))return toast('Enter an amount');
  const e={id:Date.now()+Math.random().toString(36).slice(2,5),t:f.k,d:f.d||dt(),tm:f.tm||tm(),a};
- if(f.k=='i'){e.src=f.src;e.bank=f.bank}
+ if(f.k=='i'){e.src=f.src;e.bank=f.bank;if(f.src=='Other'){e.src=f.note.trim();if(!e.src)return toast('Enter where the money came from')}}
  else{const c=C[f.cat];if(c.s&&!f.sub)return toast('Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.f&&!e.note&&f.cat=='Personal Accessories')return toast(c.f)}
  D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';toast('Saved')}
 function render(){try{localStorage.setItem('wig.ui',JSON.stringify({v:S.v,p:S.p,sel:S.sel}))}catch(e){}
@@ -143,7 +143,7 @@ document.addEventListener('change',e=>{if(e.target.id=='catsel'){S.sel=e.target.
 document.addEventListener('input',e=>{const k=e.target.dataset.f;if(k)S.f[k]=e.target.value});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-v],[data-cat],[data-set],[data-p],[data-ft],[data-del],[data-act]');if(!b)return;const d=b.dataset;
  if(d.v){S.v=d.v;scrollTo(0,0)}else if(d.cat){S.sel=d.cat;setTimeout(()=>{const t=$('#subcard');t&&t.scrollIntoView({behavior:'smooth',block:'start'})},30)}else if(d.p)S.p=d.p;else if(d.ft)S.ft=d.ft;
- else if(d.set){const i=d.set.indexOf('='),k=d.set.slice(0,i);S.f[k]=d.set.slice(i+1);if(k=='cat'){S.f.sub='';S.f.q='';S.f.val='';if(C[S.f.cat].p)S.f.note=''}if((k=='sub'||k=='val')&&C[S.f.cat].p){S.f.note='';if(k=='sub')S.f.val=''}}
+ else if(d.set){const i=d.set.indexOf('='),k=d.set.slice(0,i);S.f[k]=d.set.slice(i+1);if(k=='src'||k=='k')S.f.note='';if(k=='cat'){S.f.sub='';S.f.q='';S.f.val='';if(C[S.f.cat].p)S.f.note=''}if((k=='sub'||k=='val')&&C[S.f.cat].p){S.f.note='';if(k=='sub')S.f.val=''}}
  else if(d.del){if(S.del==d.del){D=D.filter(x=>x.id!=d.del);sb.from('entries').delete().eq('id',d.del).then(r=>{if(r.error)toast(r.error.message)});S.del=''}else S.del=d.del}
  else if(d.act=='save')add();
  else if(d.act=='signin'||d.act=='signup'){auth(d.act);return}
