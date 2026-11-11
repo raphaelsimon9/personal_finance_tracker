@@ -2,7 +2,7 @@
 
 > Every naira, traced to where it went.
 
-A mobile-first personal finance web app for recording income and expenses, tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so records are stored in your own account and sync across your phone and laptop.
+A mobile-first personal finance web app for recording income and expenses in naira (₦), tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so your records are stored in your own account and sync across your phone and laptop.
 
 ## Contents
 
@@ -55,7 +55,7 @@ Categories and subcategories are listed alphabetically wherever they appear.
 | Snacks | Biscuits, Golden Morn, Milk, Sugar |
 | Sports Betting | Platform dropdown: Football.com, SportsBet.io, Sportybet, Stake.com |
 | Toiletries | Adult Soap, Adult TPaste, Body Spray, Conditioner, Hair Cream, Kids Soap, Kids TPaste, Liquid Soap, Perfume, Roll On, Shampoo, TBrush, Vaseline, Washing Soap |
-| Transport | Free text: type of transport (required) |
+| Transport | Type of transport (Airplane, Boat, Bus, Taxi Ride, Train, Trek), then free-text destination and reason |
 | Water | Number of bags and amount |
 
 Every expense also takes the bank it was paid from, an optional **transaction fee**, an amount, a date and a time.
@@ -105,7 +105,8 @@ Choose what you want to see, and the report appears once the required selections
 | Health & Wellness | Subcategory, Who is it for, Bank, Amount, Date, Time (with a Kids/Adult filter) |
 | Sports Betting and other categories with subcategories | Subcategory or Platform, Bank, Amount, Date, Time |
 | Water, Gas | Bags or Kg, Bank, Amount, Date, Time |
-| Others, Transport, Personal Expenses, Appliances, Rent, Electricity | Your note (for example "Type of transport"), Bank, Amount, Date, Time |
+| Transport | Type, Destination, Reason, Bank, Amount, Date, Time |
+| Others, Personal Expenses, Appliances, Rent, Electricity | Your note (for example "What was it for"), Bank, Amount, Date, Time |
 
 A **Fee** column is added whenever any of the listed expenses has a transaction fee. Every report shows totals, number of entries, the average and a breakdown by item and by bank above the table, and a total row at the bottom. The date filter is shared with the Home tab.
 
@@ -127,6 +128,7 @@ All records live in one table, `entries`, with row level security so each user o
 | `sub` | text | Subcategory, network or platform |
 | `q` | numeric | Quantity: bags of water or kilograms of gas |
 | `note` | text | Extra detail, see below |
+| `reason` | text | Reason for the entry (used by Transport) |
 | `fee` | numeric | Optional transaction fee |
 | `created_at` | timestamptz | Created time, set by Supabase |
 
@@ -136,7 +138,8 @@ How the `note` and `sub` columns are used by category:
 | --- | --- | --- |
 | Data | Network | Plan and validity, for example `10GB monthly` |
 | Health & Wellness | `Medicine` | `Adult` or `Kids` |
-| Others, Transport, Personal Expenses, Appliances | empty | What it was for |
+| Transport | Type of transport | Destination (the reason is in `reason`) |
+| Others, Personal Expenses, Appliances | empty | What it was for |
 | Water, Gas | empty | empty, quantity is in `q` |
 | Other categories | The chosen item | Optional extra text |
 
