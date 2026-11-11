@@ -70,7 +70,7 @@ const C={Food:{e:'🍚',s:'Rice Bag,Beans,Meat,Fish,Garri,Eggs,Tomatoes,Sachet T
 Water:{e:'💧',q:'Bags',u:'bag',ql:'How many bags?'},Snacks:{e:'🍪',s:['Biscuits','Golden Morn','Milk','Sugar']},
 Toiletries:{e:'🧼',s:'Washing Soap,Kids Soap,Adult Soap,Kids TPaste,Adult TPaste,TBrush,Perfume,Roll On,Body Spray,Shampoo,Conditioner,Vaseline,Hair Cream,Liquid Soap'.split(',')},
 Gas:{e:'🔥',q:'Kg',u:'kg',ql:'How many kg?'},Electricity:{e:'💡'},'Personal Expenses':{e:'⌚',f:'Which accessory?'},
-Clothes:{e:'👕',s:P},Shoes:{e:'👟',s:P},Rent:{e:'🏠'},Transport:{e:'🚕',f:'Type of transport',req:1},Others:{e:'📝',f:'What was it for?',req:1},'School Fees and Books':{e:'🎓',s:['Leroy','Adela']},Appliances:{e:'🔌',f:'Which appliance?'},Airtime:{e:'📱',s:['MTN','Glo','Airtel'],sl:'Network'},Data:{e:'📶',s:['MTN','Glo','Airtel'],sl:'Network',p:PLN,pl:'Plan size',pt:'By plan size'},'Health & Wellness':{e:'💊',s:['Medicine'],p:{Medicine:['Kids','Adult']},pl:'Who is it for?',pt:'Kids or Adult'},'Sports Betting':{e:'🎲',s:['Football.com','Stake.com','SportsBet.io','Sportybet'],sl:'Platform',dd:1}};
+Clothes:{e:'👕',s:P},Shoes:{e:'👟',s:P},Rent:{e:'🏠'},Transport:{e:'🚕',s:['Taxi Ride','Bus','Train','Airplane','Boat','Trek'],sl:'Type of transport',f:'Destination',rs:1},Others:{e:'📝',f:'What was it for?',req:1},'School Fees and Books':{e:'🎓',s:['Leroy','Adela']},Appliances:{e:'🔌',f:'Which appliance?'},Airtime:{e:'📱',s:['MTN','Glo','Airtel'],sl:'Network'},Data:{e:'📶',s:['MTN','Glo','Airtel'],sl:'Network',p:PLN,pl:'Plan size',pt:'By plan size'},'Health & Wellness':{e:'💊',s:['Medicine'],p:{Medicine:['Kids','Adult']},pl:'Who is it for?',pt:'Kids or Adult'},'Sports Betting':{e:'🎲',s:['Football.com','Stake.com','SportsBet.io','Sportybet'],sl:'Platform',dd:1}};
 Object.values(C).forEach(c=>{if(c.s)c.s.sort((a,b)=>a.localeCompare(b));if(c.p&&Array.isArray(Object.values(c.p)[0]))Object.values(c.p).forEach(a=>a.sort((x,y)=>x.localeCompare(y)))});SRC.sort((a,b)=>a.localeCompare(b));
 const CK=Object.keys(C).sort((a,b)=>a.localeCompare(b)),COL=['#F2B73A','#FF7A66','#6CB6FF','#B79BFF','#4ADDB8','#FF9FC2','#C8D46A','#FFB26B','#9FB4C7','#E86BA8','#7BE0A0','#5ED0D6','#8AA2FF','#F5E960','#9BE564','#C9824B','#D4A5A5','#6C8EBF'],CI=['Food','Water','Snacks','Toiletries','Gas','Electricity','Personal Expenses','Clothes','Shoes','Rent','School Fees and Books','Appliances','Airtime','Data','Health & Wellness','Sports Betting','Others','Transport'],col=c=>COL[CI.indexOf(c)%COL.length];
 const PL={m:'This month',lm:'Last month','3m':'Last 3 months',y:'This year',all:'All time',c:'Custom'},MN='Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
@@ -80,7 +80,7 @@ const sum=a=>a.reduce((s,e)=>s+e.a,0),fee=a=>a.reduce((s,e)=>s+(+e.fee||0),0),qt
 const by=(a,f)=>{const m={};a.forEach(e=>{const k=f(e);m[k]=m[k]||[0,0];m[k][0]+=e.a;m[k][1]++});return Object.entries(m).map(([k,v])=>[k,v[0],v[1]]).sort((a,b)=>b[1]-a[1])};
 try{const th=localStorage.getItem('wig.theme');if(th)document.documentElement.dataset.theme=th}catch(e){}
 let D=[];const sb=SUPABASE_URL.startsWith('PASTE')?null:supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const S={open:'',cm:dt().slice(0,7),pick:'',calOpen:false,from:d10(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:dt(),rp:{type:'',cat:'',sub:'',val:'',who:'',bank:'',src:''},v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:'Salary',bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:''}};
+const S={open:'',cm:dt().slice(0,7),pick:'',calOpen:false,from:d10(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:dt(),rp:{type:'',cat:'',sub:'',val:'',who:'',bank:'',src:''},v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:'Salary',bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:'',reason:''}};
 function rng(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=(a,b)=>[d10(new Date(a,b,1)),d10(new Date(a,b+1,0))];return{m:f(y,m),lm:f(y,m-1),'3m':[d10(new Date(y,m-2,1)),d10(n)],y:[y+'-01-01',y+'-12-31'],all:['0','9'],c:[S.from,S.to].sort()}[S.p]}
 const inP=e=>{const r=rng();return e.d>=r[0]&&e.d<=r[1]},T=(L,t)=>L.filter(e=>e.t==t);
 const dd=(key,opts,cur,ph)=>{const o=opts.map(x=>Array.isArray(x)?x:[x,x]),sel=o.find(x=>x[0]==cur);return `<div class="dd"><button type="button" class="ddb" data-dd="${key}" aria-haspopup="listbox" aria-expanded="${S.open==key}"><span>${sel?esc(sel[1]):`<span style="color:var(--mut)">${ph}</span>`}</span><span aria-hidden="true">▾</span></button>${S.open==key?`<div class="ddl" role="listbox">${o.map(x=>`<button type="button" role="option" aria-selected="${x[0]==cur}" class="ddo${x[0]==cur?' on':''}" data-ddk="${key}" data-ddv="${esc(x[0])}">${esc(x[1])}</button>`).join('')}</div>`:''}</div>`};
@@ -138,16 +138,16 @@ function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
    if(f.val&&f.val!='Other'&&pp[f.val])h+=`<label>${c.pl}</label>${dd('note',pp[f.val].map(z=>[z+' '+f.val.toLowerCase(),z]),f.note,'Choose a plan')}`;
    else if(f.val=='Other')h+=`<label>${c.pl}</label><input data-f="note" value="${esc(f.note)}" placeholder="e.g. 3GB">`}
   if(c.q)h+=`<label>${c.ql}</label><input data-f="q" inputmode="decimal" value="${esc(f.q)}" placeholder="0">`;
-  if(!c.p)h+=`<label>${c.f||'Note (optional)'}</label><input data-f="note" value="${esc(f.note)}" placeholder="${c.f?'Type here':'e.g. bought at the market'}">`}
+  if(!c.p)h+=`<label>${c.f||'Note (optional)'}</label><input data-f="note" value="${esc(f.note)}" placeholder="${c.f?'Type here':'e.g. bought at the market'}">`+(c.rs?`<label>Reason</label><input data-f="reason" value="${esc(f.reason)}" placeholder="Why did you travel?">`:'')}
  h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k=='x'?`<label>Transaction fee (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'withdrawal'}</button>`;
  return h}
 const bankBal=b=>{const o=a=>a.filter(e=>e.bank==b),x=o(T(D,'x')),w=o(T(D,'w'));return sum(o(T(D,'i')))-sum(x)-fee(x)-sum(w)-fee(w)};
 function add(){const f=S.f,a=parseFloat(String(f.a).replace(/,/g,''));if(!(a>0))return toast('Enter an amount');
  const e={id:Date.now()+Math.random().toString(36).slice(2,5),t:f.k,d:f.d||dt(),tm:f.tm||tm(),a};
  if(f.k=='i'){e.src=f.src;e.bank=f.bank;if(f.src=='Other'){e.src=f.note.trim();if(!e.src)return toast('Enter where the money came from')}}
- else{const c=C[f.cat];if(c.s&&!f.sub)return toast(c.dd?'Choose a platform':'Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.req&&!e.note)return toast(c.f)}
+ else{const c=C[f.cat];if(c.s&&!f.sub)return toast(c.dd?'Choose a platform':'Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.rs&&f.reason.trim())e.reason=f.reason.trim();if(c.req&&!e.note)return toast(c.f)}
  if(f.k=='x'){const bl=bankBal(e.bank),need=e.a+(e.fee||0);if(bl<=0)return toast(e.bank+' has no funds. Add income to it first.');if(need>bl)return toast('Not enough in '+e.bank+'. Available: '+N(bl)+', needed: '+N(need))}
- D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';toast('Saved')}
+ D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';f.reason='';toast('Saved')}
 const VALS=[...new Set(Object.values(PLN).flatMap(o=>Object.keys(o)))],fd=x=>{const[y,m,d]=x.split('-');return +d+' '+MN[+m-1]+' '+y};
 const parsePlan=n=>{n=n||'';const i=n.lastIndexOf(' '),v=i>0?n.slice(i+1):'',f=VALS.find(x=>x.toLowerCase()==v);return f?{plan:n.slice(0,i),val:f}:{plan:n||'–',val:'–'}};
 function rpset(k,v){const R=S.rp;R[k]=v;if(k=='type'){R.cat=R.sub=R.val=R.who=R.src=''}if(k=='cat')R.sub=R.val=R.who=''}
@@ -160,6 +160,7 @@ function rpCols(rows){const R=S.rp,c=R.cat,ci=C[c]||{},B=['Bank',e=>e.bank||'–
  if(R.type=='income')k=[['Income source',e=>e.src||'–'],B];
  else if(c=='*')k=[['Category',e=>(C[e.cat]?C[e.cat].e+' ':'')+e.cat],['Subcategory',e=>e.sub||e.note||'–'],B];
  else if(c=='Data')k=[['Network',e=>e.sub||'–'],['Validity',e=>parsePlan(e.note).val],['Plan',e=>parsePlan(e.note).plan],B];
+ else if(c=='Transport')k=[['Type',e=>e.sub||'–'],['Destination',e=>e.note||'–'],['Reason',e=>e.reason||'–'],B];
  else if(c=='Airtime')k=[['Network',e=>e.sub||'–'],B];
  else if(ci.p)k=[[ci.sl||'Subcategory',e=>e.sub||'–'],[ci.pl.replace('?',''),e=>e.note||'–'],B];
  else if(ci.s)k=[[ci.sl||'Subcategory',e=>e.sub||'–'],B];
@@ -199,7 +200,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-v],[data-c
  else if(d.v){S.v=d.v;scrollTo(0,0)}else if(d.cat){S.sel=d.cat;setTimeout(()=>{const t=$('#subcard');t&&t.scrollIntoView({behavior:'smooth',block:'start'})},30)}else if(d.p){S.p=d.p;if(d.p=='c'){S.calOpen=true;S.pick='';S.cm=rng()[1].slice(0,7)}}
  else if(d.cal){if(d.cal=='toggle'){S.calOpen=!S.calOpen;S.pick='';S.cm=rng()[1].slice(0,7)}else{const[y,m]=S.cm.split('-').map(Number);S.cm=d10(new Date(y,m-1+(d.cal=='next'?1:-1),1)).slice(0,7)}}
  else if(d.day){if(!S.pick)S.pick=d.day;else{S.from=S.pick<d.day?S.pick:d.day;S.to=S.pick<d.day?d.day:S.pick;S.pick='';S.calOpen=false}}else if(d.ft)S.ft=d.ft;
- else if(d.set){const i=d.set.indexOf('='),k=d.set.slice(0,i);S.f[k]=d.set.slice(i+1);if(k=='src'||k=='k')S.f.note='';if(k=='cat'){S.f.sub='';S.f.q='';S.f.val='';if(C[S.f.cat].p)S.f.note=''}if((k=='sub'||k=='val')&&C[S.f.cat].p){S.f.note='';if(k=='sub')S.f.val=''}}
+ else if(d.set){const i=d.set.indexOf('='),k=d.set.slice(0,i);S.f[k]=d.set.slice(i+1);if(k=='src'||k=='k')S.f.note='';if(k=='cat'){S.f.reason='';S.f.sub='';S.f.q='';S.f.val='';if(C[S.f.cat].p)S.f.note=''}if((k=='sub'||k=='val')&&C[S.f.cat].p){S.f.note='';if(k=='sub')S.f.val=''}}
  else if(d.del){if(S.del==d.del){D=D.filter(x=>x.id!=d.del);sb.from('entries').delete().eq('id',d.del).then(r=>{if(r.error)toast(r.error.message)});S.del=''}else S.del=d.del}
  else if(d.act=='save')add();
  else if(d.act=='signin'||d.act=='signup'){auth(d.act);return}
