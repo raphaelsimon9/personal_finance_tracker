@@ -49,11 +49,13 @@ svg{width:100%;height:auto}svg text{fill:var(--mut);font-size:11px}.bi{fill:var(
 .empty{text-align:center;color:var(--mut);padding:26px 10px}
 .pw{position:relative}.pw input{padding-right:50px}.eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:flex;background:none;border:0;color:var(--mut);padding:10px;cursor:pointer;border-radius:10px}.eye:hover{color:var(--ink)}
 .crow{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;color:inherit;font:inherit;cursor:pointer}.crow:first-of-type{border-top:0}.crow small,.srow small{color:var(--mut)}.srow{padding:10px 0;border-top:1px solid var(--line)}.z{opacity:.55}
+.tw{overflow-x:auto;margin:0 -4px}.rt{width:100%;border-collapse:collapse;font-size:12.5px}.rt th{text-align:left;color:var(--mut);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}.rt td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}.rt .r{text-align:right}.rt tfoot td{font-weight:700;border-bottom:0}
+@media(max-width:600px){body{font-size:14px}.wrap{padding:12px 12px 96px}h1{font-size:23px}header p{margin:0 0 10px;font-size:12.5px}h2{font-size:16px}h3{margin:12px 0 4px;font-size:12px}.chips{gap:6px}.chip{padding:5px 11px;font-size:13px}.hero{padding:15px;border-radius:20px}.big{font-size:30px;margin:2px 0 10px}.tiles{gap:8px}.t{padding:8px 11px;border-radius:12px}.t b{font-size:16px}.t small{font-size:12px}.card{padding:13px;border-radius:15px;margin-bottom:10px}.m{font-size:12px}label{margin:11px 0 5px;font-size:12px}input,select,textarea{padding:9px 11px}.amt{font-size:24px}.btn{padding:12px;font-size:15px;margin-top:14px}.seg button{padding:8px}.ln{padding:3px 0}.ddb{padding:9px 11px;font-size:15px}.ddo{padding:8px 10px;font-size:14px}.crow{padding:8px 0}.srow{padding:7px 0}.leg{font-size:12px;gap:4px 12px}.nav button{min-height:42px;font-size:11px;padding:3px}.nav button span{font-size:17px}.rt{font-size:12px}.rt th,.rt td{padding:7px 6px}}
 .dd{position:relative}.ddb{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);cursor:pointer}.ddl{position:absolute;z-index:6;left:0;right:0;top:calc(100% + 6px);max-height:260px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:6px}.ddo{display:block;width:100%;text-align:left;background:none;border:0;color:var(--ink);font:inherit;padding:11px 12px;border-radius:10px;cursor:pointer}.ddo:hover{background:var(--bg)}.ddo.on{color:var(--pri);font-weight:700}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body>
 <div class="wrap" id="app"></div>
-<nav class="nav"><button data-v="h"><span>🏠</span>Home</button><button data-v="a"><span>➕</span>Add</button></nav>
+<nav class="nav"><button data-v="h"><span>🏠</span>Home</button><button data-v="a"><span>➕</span>Add</button><button data-v="r"><span>📊</span>Reports</button></nav>
 <div class="toast" id="ts"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -69,19 +71,19 @@ Toiletries:{e:'🧼',s:'Washing Soap,Kids Soap,Adult Soap,Kids TPaste,Adult TPas
 Gas:{e:'🔥',q:'Kg',u:'kg',ql:'How many kg?'},Electricity:{e:'💡'},'Personal Expenses':{e:'⌚',f:'Which accessory?'},
 Clothes:{e:'👕',s:P},Shoes:{e:'👟',s:P},Rent:{e:'🏠'},Others:{e:'📝',f:'What was it for?',req:1},'School Fees and Books':{e:'🎓',s:['Leroy','Adela']},Appliances:{e:'🔌',f:'Which appliance?'},Airtime:{e:'📱',s:['MTN','Glo','Airtel'],sl:'Network'},Data:{e:'📶',s:['MTN','Glo','Airtel'],sl:'Network',p:PLN,pl:'Plan size',pt:'By plan size'},'Health & Wellness':{e:'💊',s:['Medicine'],p:{Medicine:['Kids','Adult']},pl:'Who is it for?',pt:'Kids or Adult'},'Sports Betting':{e:'🎲',s:['Football.com','Stake.com','SportsBet.io','Sportybet'],sl:'Platform',dd:1}};
 const CK=Object.keys(C),COL=['#F2B73A','#FF7A66','#6CB6FF','#B79BFF','#4ADDB8','#FF9FC2','#C8D46A','#FFB26B','#9FB4C7','#E86BA8','#7BE0A0','#5ED0D6','#8AA2FF','#F5E960','#9BE564','#C9824B','#D4A5A5'],CI=['Food','Water','Snacks','Toiletries','Gas','Electricity','Personal Expenses','Clothes','Shoes','Rent','School Fees and Books','Appliances','Airtime','Data','Health & Wellness','Sports Betting','Others'],col=c=>COL[CI.indexOf(c)%COL.length];
-const PL={m:'This month',lm:'Last month','3m':'Last 3 months',y:'This year',all:'All time'},MN='Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
+const PL={m:'This month',lm:'Last month','3m':'Last 3 months',y:'This year',all:'All time',c:'Custom'},MN='Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ');
 const $=s=>document.querySelector(s),iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString(),d10=d=>iso(d).slice(0,10),dt=()=>d10(new Date()),tm=()=>iso(new Date()).slice(11,16);
 const N=v=>'₦'+Math.round(v).toLocaleString('en-NG'),esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sum=a=>a.reduce((s,e)=>s+e.a,0),fee=a=>a.reduce((s,e)=>s+(+e.fee||0),0),qty=a=>a.reduce((s,e)=>s+(e.q||0),0);
 const by=(a,f)=>{const m={};a.forEach(e=>{const k=f(e);m[k]=m[k]||[0,0];m[k][0]+=e.a;m[k][1]++});return Object.entries(m).map(([k,v])=>[k,v[0],v[1]]).sort((a,b)=>b[1]-a[1])};
 try{const th=localStorage.getItem('wig.theme');if(th)document.documentElement.dataset.theme=th}catch(e){}
 let D=[];const sb=SUPABASE_URL.startsWith('PASTE')?null:supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const S={open:'',v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:SRC[0],bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:''}};
-function rng(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=(a,b)=>[d10(new Date(a,b,1)),d10(new Date(a,b+1,0))];return{m:f(y,m),lm:f(y,m-1),'3m':[d10(new Date(y,m-2,1)),d10(n)],y:[y+'-01-01',y+'-12-31'],all:['0','9']}[S.p]}
+const S={open:'',from:d10(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:dt(),rp:{type:'',cat:'',sub:'',val:'',who:'',bank:'',src:''},v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:SRC[0],bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:''}};
+function rng(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=(a,b)=>[d10(new Date(a,b,1)),d10(new Date(a,b+1,0))];return{m:f(y,m),lm:f(y,m-1),'3m':[d10(new Date(y,m-2,1)),d10(n)],y:[y+'-01-01',y+'-12-31'],all:['0','9'],c:[S.from,S.to].sort()}[S.p]}
 const inP=e=>{const r=rng();return e.d>=r[0]&&e.d<=r[1]},T=(L,t)=>L.filter(e=>e.t==t);
 const dd=(key,opts,cur,ph)=>{const o=opts.map(x=>Array.isArray(x)?x:[x,x]),sel=o.find(x=>x[0]==cur);return `<div class="dd"><button type="button" class="ddb" data-dd="${key}" aria-haspopup="listbox" aria-expanded="${S.open==key}"><span>${sel?esc(sel[1]):`<span style="color:var(--mut)">${ph}</span>`}</span><span aria-hidden="true">▾</span></button>${S.open==key?`<div class="ddl" role="listbox">${o.map(x=>`<button type="button" role="option" aria-selected="${x[0]==cur}" class="ddo${x[0]==cur?' on':''}" data-ddk="${key}" data-ddv="${esc(x[0])}">${esc(x[1])}</button>`).join('')}</div>`:''}</div>`};
 const dark=()=>document.documentElement.dataset.theme?document.documentElement.dataset.theme=='dark':!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
-const hdr=p=>'<header><span style="float:right"><button class="x" data-act="theme" style="font-size:18px" aria-label="Switch to '+(dark()?'light':'dark')+' mode">'+(dark()?'☀️':'🌙')+'</button>'+(S.authed?'<button class="x" data-act="out">Sign out</button>':'')+'</span><h1>Personal Finance Tracker</h1><p>Every naira, traced to where it went.</p></header>'+(p?'<div class="chips pl">'+Object.entries(PL).map(([k,v])=>`<button class="chip ${S.p==k?'on':''}" data-p="${k}">${v}</button>`).join('')+'</div>':'');
+const hdr=p=>'<header><span style="float:right"><button class="x" data-act="theme" style="font-size:18px" aria-label="Switch to '+(dark()?'light':'dark')+' mode">'+(dark()?'☀️':'🌙')+'</button>'+(S.authed?'<button class="x" data-act="out">Sign out</button>':'')+'</span><h1>Personal Finance Tracker</h1><p>Every naira, traced to where it went.</p></header>'+(p?'<div class="chips pl">'+Object.entries(PL).map(([k,v])=>`<button class="chip ${S.p==k?'on':''}" data-p="${k}">${v}</button>`).join('')+'</div>'+(S.p=='c'?`<div class="two" style="margin:0 0 10px"><div><label style="margin-top:0">From</label><input type="date" data-r="from" value="${S.from}"></div><div><label style="margin-top:0">To</label><input type="date" data-r="to" value="${S.to}"></div></div>`:''):'');
 const fmtD=s=>{const[y,m,d]=s.split('-');return new Date(+y,m-1,+d).toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short',year:'numeric'})};
 const lbl=e=>PC.includes(e.cat)||e.cat=='Airtime'||e.cat=='Data'?e.cat+': '+e.sub:e.sub||e.note||e.cat;
 const sh=v=>v>=1e6?(v/1e6).toFixed(1)+'m':v>=1000?Math.round(v/1000)+'k':Math.round(v);
@@ -138,15 +140,54 @@ function add(){const f=S.f,a=parseFloat(String(f.a).replace(/,/g,''));if(!(a>0))
  if(f.k=='i'){e.src=f.src;e.bank=f.bank;if(f.src=='Other'){e.src=f.note.trim();if(!e.src)return toast('Enter where the money came from')}}
  else{const c=C[f.cat];if(c.s&&!f.sub)return toast(c.dd?'Choose a platform':'Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.req&&!e.note)return toast(c.f)}
  D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';toast('Saved')}
-function render(){try{localStorage.setItem('wig.ui',JSON.stringify({v:S.v,p:S.p,sel:S.sel}))}catch(e){}
- $('#app').innerHTML=S.authed?{h:vHome,a:vAdd}[S.v]():vAuth();document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==(S.v=='c'?'r':S.v)))}
+const VALS=[...new Set(Object.values(PLN).flatMap(o=>Object.keys(o)))],fd=x=>{const[y,m,d]=x.split('-');return +d+' '+MN[+m-1]+' '+y};
+const parsePlan=n=>{n=n||'';const i=n.lastIndexOf(' '),v=i>0?n.slice(i+1):'',f=VALS.find(x=>x.toLowerCase()==v);return f?{plan:n.slice(0,i),val:f}:{plan:n||'–',val:'–'}};
+function rpset(k,v){const R=S.rp;R[k]=v;if(k=='type'){R.cat=R.sub=R.val=R.who=R.src=''}if(k=='cat')R.sub=R.val=R.who=''}
+function rpRows(){const R=S.rp;let a=D.filter(inP);
+ if(R.type=='income'){a=T(a,'i');if(R.src)a=a.filter(e=>e.src==R.src)}
+ else{a=T(a,'x');if(R.cat!='*')a=a.filter(e=>e.cat==R.cat);if(R.sub)a=a.filter(e=>e.sub==R.sub);if(R.val)a=a.filter(e=>parsePlan(e.note).val==R.val);if(R.who)a=a.filter(e=>e.note==R.who)}
+ if(R.bank)a=a.filter(e=>e.bank==R.bank);
+ return a.sort((x,y)=>(y.d+y.tm).localeCompare(x.d+x.tm))}
+function rpCols(rows){const R=S.rp,c=R.cat,ci=C[c]||{},B=['Bank',e=>e.bank||'–'];let k;
+ if(R.type=='income')k=[['Income source',e=>e.src||'–'],B];
+ else if(c=='*')k=[['Category',e=>(C[e.cat]?C[e.cat].e+' ':'')+e.cat],['Subcategory',e=>e.sub||e.note||'–'],B];
+ else if(c=='Data')k=[['Network',e=>e.sub||'–'],['Validity',e=>parsePlan(e.note).val],['Plan',e=>parsePlan(e.note).plan],B];
+ else if(c=='Airtime')k=[['Network',e=>e.sub||'–'],B];
+ else if(ci.p)k=[[ci.sl||'Subcategory',e=>e.sub||'–'],[ci.pl.replace('?',''),e=>e.note||'–'],B];
+ else if(ci.s)k=[[ci.sl||'Subcategory',e=>e.sub||'–'],B];
+ else if(ci.q)k=[[ci.q,e=>e.q||'–'],B];
+ else k=[['Details',e=>e.note||'–'],B];
+ k.push(['Amount',e=>N(e.a),1]);if(R.type=='expense'&&rows.some(e=>e.fee>0))k.push(['Fee',e=>e.fee?N(e.fee):'–',1]);
+ k.push(['Date',e=>fd(e.d)],['Time',e=>e.tm||'–']);return k}
+function vRep(){const R=S.rp,c=R.cat,ci=C[c]||{};
+ let h=hdr(1)+`<section class="card"><h2>Build a report</h2><p class="m">Choose what to look at. The report appears once your selections are made.</p><label style="margin-top:0">Type</label><div class="chips">${[['income','Income'],['expense','Expense']].map(([k,v])=>`<button class="chip${R.type==k?' on':''}" data-rp="type=${k}">${v}</button>`).join('')}</div>`;
+ if(R.type=='income'){const srcs=[...new Set(SRC.filter(x=>x!='Other').concat(T(D,'i').map(e=>e.src).filter(Boolean)))];h+='<label>Income source</label>'+dd('rp.src',[['','All sources']].concat(srcs),R.src,'All sources')}
+ if(R.type=='expense'){h+='<label>Category</label>'+dd('rp.cat',[['*','All categories']].concat(CK.map(k=>[k,C[k].e+' '+k])),c,'Choose a category');
+  if(c&&c!='*'){if(ci.s)h+=`<label>${ci.sl||'Subcategory'}</label>`+dd('rp.sub',[['','All']].concat(ci.s),R.sub,'All');
+   if(c=='Data')h+='<label>Validity</label>'+dd('rp.val',[['','All']].concat(VALS),R.val,'All');
+   else if(ci.p)h+=`<label>${ci.pl.replace('?','')}</label>`+dd('rp.who',[['','All']].concat([...new Set(Object.values(ci.p).flat())]),R.who,'All')}}
+ const ready=R.type=='income'||(R.type=='expense'&&c);
+ if(ready)h+='<label>Bank</label><div class="chips">'+['',...BANKS].map(b=>`<button class="chip${R.bank==b?' on':''}" data-rp="bank=${b}">${b||'All banks'}</button>`).join('')+'</div>';
+ h+='</section>';
+ if(!ready)return h+'<div class="empty">Pick Income, or Expense and a category, to load the report.</div>';
+ const rows=rpRows(),per=S.p=='c'?fd(rng()[0])+' to '+fd(rng()[1]):PL[S.p];
+ if(!rows.length)return h+`<div class="empty">No ${R.type} entries match these filters for ${per.toLowerCase()}.</div>`;
+ const tot=sum(rows),F=fee(rows),ex=R.type=='expense',cols=rpCols(rows),tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`;
+ const gk=e=>!ex?e.src:c=='*'?e.cat:(ci.p&&c!='Data')?(e.note||c):(e.sub||e.note||c),gr=by(rows,gk).slice(0,8),bk=by(rows,e=>e.bank||'No bank'),mx=gr[0][1];
+ h+=`<section class="card"><h2>${ex?(c=='*'?'All expenses':C[c].e+' '+esc(c)):'Income'}</h2><p class="m">${esc(per)}${R.bank?', '+R.bank:''}</p><div class="tiles" style="margin-bottom:0">${tile('Total',N(tot))}${tile('Entries',rows.length)}${tile('Average',N(tot/rows.length))}${ex?tile('Transaction fees',N(F)):tile('Largest',N(Math.max(...rows.map(e=>e.a))))}</div></section>`;
+ h+=`<section class="card"><h2>Breakdown</h2>${gr.map(([n,v,k])=>`<div class="srow"><div class="rl"><span>${esc(n)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:var(--pri)"></i></span><small>${Math.round(v/tot*100)}%, ${k} ${k>1?'entries':'entry'}</small></div>`).join('')}<h3>By bank</h3>${bk.map(([b,v,k])=>`<div class="ln"><span>${esc(b)} <small>${k}×</small></span><b>${N(v)}</b></div>`).join('')}</section>`;
+ h+=`<section class="card"><h2>Entries</h2><div class="tw"><table class="rt"><thead><tr>${cols.map(([t,,n])=>`<th class="${n?'r':''}">${t}</th>`).join('')}</tr></thead><tbody>${rows.map(e=>`<tr>${cols.map(([,f,n])=>`<td class="${n?'r':''}">${esc(f(e))}</td>`).join('')}</tr>`).join('')}</tbody><tfoot><tr>${cols.map(([t,,n],i)=>`<td class="${n?'r':''}">${i==0?'Total':t=='Amount'?N(tot):t=='Fee'?N(F):''}</td>`).join('')}</tr></tfoot></table></div></section>`;
+ return h}
+function render(){try{localStorage.setItem('wig.ui',JSON.stringify({v:S.v,p:S.p,sel:S.sel,from:S.from,to:S.to}))}catch(e){}
+ $('#app').innerHTML=S.authed?{h:vHome,a:vAdd,r:vRep}[S.v]():vAuth();document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==(S.v=='c'?'r':S.v)))}
 let tt;function toast(m){const t=$('#ts');t.textContent=m;t.classList.add('s');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('s'),1800)}
 document.addEventListener('keydown',e=>{if(e.key=='Escape'&&S.open){S.open='';render()}});
-document.addEventListener('change',e=>{if(e.target.id=='catsel'){S.sel=e.target.value;render()}});
+document.addEventListener('change',e=>{if(e.target.dataset.r){S[e.target.dataset.r]=e.target.value;render();return}if(e.target.id=='catsel'){S.sel=e.target.value;render()}});
 document.addEventListener('input',e=>{const k=e.target.dataset.f;if(k)S.f[k]=e.target.value});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-v],[data-dd],[data-ddk],[data-cat],[data-set],[data-p],[data-ft],[data-del],[data-act]');if(S.open&&!e.target.closest('.dd')){S.open='';if(!b){render();return}}if(!b)return;const d=b.dataset;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-v],[data-rp],[data-dd],[data-ddk],[data-cat],[data-set],[data-p],[data-ft],[data-del],[data-act]');if(S.open&&!e.target.closest('.dd')){S.open='';if(!b){render();return}}if(!b)return;const d=b.dataset;
  if(d.dd)S.open=S.open==d.dd?'':d.dd;
- else if(d.ddk){if(d.ddk=='sel')S.sel=d.ddv;else S.f[d.ddk]=d.ddv;S.open=''}
+ else if(d.rp){const i=d.rp.indexOf('=');rpset(d.rp.slice(0,i),d.rp.slice(i+1))}
+ else if(d.ddk){if(d.ddk.startsWith('rp.'))rpset(d.ddk.slice(3),d.ddv);else if(d.ddk=='sel')S.sel=d.ddv;else S.f[d.ddk]=d.ddv;S.open=''}
  else if(d.v){S.v=d.v;scrollTo(0,0)}else if(d.cat){S.sel=d.cat;setTimeout(()=>{const t=$('#subcard');t&&t.scrollIntoView({behavior:'smooth',block:'start'})},30)}else if(d.p)S.p=d.p;else if(d.ft)S.ft=d.ft;
  else if(d.set){const i=d.set.indexOf('='),k=d.set.slice(0,i);S.f[k]=d.set.slice(i+1);if(k=='src'||k=='k')S.f.note='';if(k=='cat'){S.f.sub='';S.f.q='';S.f.val='';if(C[S.f.cat].p)S.f.note=''}if((k=='sub'||k=='val')&&C[S.f.cat].p){S.f.note='';if(k=='sub')S.f.val=''}}
  else if(d.del){if(S.del==d.del){D=D.filter(x=>x.id!=d.del);sb.from('entries').delete().eq('id',d.del).then(r=>{if(r.error)toast(r.error.message)});S.del=''}else S.del=d.del}
@@ -162,7 +203,7 @@ async function load(){let all=[],from=0;for(;;){const r=await sb.from('entries')
 async function auth(m){const em=$('#em').value.trim(),pw=$('#pw').value,x=m=='signup'?await sb.auth.signUp({email:em,password:pw}):await sb.auth.signInWithPassword({email:em,password:pw});
  if(x.error)return toast(x.error.message);if(!x.data.session)return toast('Confirm your email, then sign in');await load()}
 (async()=>{if(!sb){$('#app').innerHTML=hdr()+'<section class="card"><h2>Setup needed</h2><p class="m">Add your Supabase URL and anon key at the top of the script, then reload.</p></section>';return}
- try{const u=JSON.parse(localStorage.getItem('wig.ui')||'{}');if(['h','a'].includes(u.v))S.v=u.v;if(C[u.sel])S.sel=u.sel;if(PL[u.p])S.p=u.p}catch(e){}
+ try{const u=JSON.parse(localStorage.getItem('wig.ui')||'{}');if(['h','a','r'].includes(u.v))S.v=u.v;if(u.from)S.from=u.from;if(u.to)S.to=u.to;if(C[u.sel])S.sel=u.sel;if(PL[u.p])S.p=u.p}catch(e){}
  $('#app').innerHTML=hdr()+'<div class="empty">Loading your records…</div>';
  sb.auth.onAuthStateChange(ev=>{if(ev=='SIGNED_OUT'&&S.authed){S.authed=0;render()}});
  try{const x=await sb.auth.getSession();if(x.data&&x.data.session)await load();else{render();if(x.error)toast(x.error.message)}}catch(e){render();toast('Could not restore your session, please sign in')}})();
