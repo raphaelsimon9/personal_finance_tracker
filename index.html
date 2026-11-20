@@ -80,7 +80,7 @@ const sum=a=>a.reduce((s,e)=>s+e.a,0),fee=a=>a.reduce((s,e)=>s+(+e.fee||0),0),qt
 const by=(a,f)=>{const m={};a.forEach(e=>{const k=f(e);m[k]=m[k]||[0,0];m[k][0]+=e.a;m[k][1]++});return Object.entries(m).map(([k,v])=>[k,v[0],v[1]]).sort((a,b)=>b[1]-a[1])};
 try{const th=localStorage.getItem('wig.theme');if(th)document.documentElement.dataset.theme=th}catch(e){}
 let D=[];const sb=SUPABASE_URL.startsWith('PASTE')?null:supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const S={open:'',cm:dt().slice(0,7),pick:'',calOpen:false,from:d10(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:dt(),rp:{type:'',cat:'',sub:'',val:'',who:'',bank:'',src:''},v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:'Salary',bank:BANKS[0],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:'',reason:''}};
+const S={open:'',cm:dt().slice(0,7),pick:'',calOpen:false,from:d10(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:dt(),rp:{type:'',cat:'',sub:'',val:'',who:'',bank:'',src:''},v:'h',p:'m',ft:'all',del:'',f:{k:'x',cat:'Food',sub:'',src:'Salary',bank:BANKS[0],to:BANKS[1],d:dt(),tm:tm(),a:'',q:'',note:'',fee:'',val:'',reason:''}};
 function rng(){const n=new Date(),y=n.getFullYear(),m=n.getMonth(),f=(a,b)=>[d10(new Date(a,b,1)),d10(new Date(a,b+1,0))];return{m:f(y,m),lm:f(y,m-1),'3m':[d10(new Date(y,m-2,1)),d10(n)],y:[y+'-01-01',y+'-12-31'],all:['0','9'],c:[S.from,S.to].sort()}[S.p]}
 const inP=e=>{const r=rng();return e.d>=r[0]&&e.d<=r[1]},T=(L,t)=>L.filter(e=>e.t==t);
 const dd=(key,opts,cur,ph)=>{const o=opts.map(x=>Array.isArray(x)?x:[x,x]),sel=o.find(x=>x[0]==cur);return `<div class="dd"><button type="button" class="ddb" data-dd="${key}" aria-haspopup="listbox" aria-expanded="${S.open==key}"><span>${sel?esc(sel[1]):`<span style="color:var(--mut)">${ph}</span>`}</span><span aria-hidden="true">▾</span></button>${S.open==key?`<div class="ddl" role="listbox">${o.map(x=>`<button type="button" role="option" aria-selected="${x[0]==cur}" class="ddo${x[0]==cur?' on':''}" data-ddk="${key}" data-ddv="${esc(x[0])}">${esc(x[1])}</button>`).join('')}</div>`:''}</div>`};
@@ -114,21 +114,22 @@ function subCard(ex,X){const c=S.sel,cx=ex.filter(e=>e.cat==c),V=sum(cx),u=C[c].
  return h+'</section>'}
 function feeCard(L){const fx=L.filter(e=>e.fee>0),F=fee(L),X=sum(T(L,'x'));
  if(!fx.length)return '<section class="card"><h2>Transaction fees</h2><p class="m">No fees recorded in this period. Add a fee when you save an expense.</p></section>';
- const tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`,bb=BANKS.map(b=>[b,fee(fx.filter(e=>e.bank==b)),fx.filter(e=>e.bank==b).length]).filter(x=>x[1]),bc=by(fx.map(e=>({cat:e.cat||'Old withdrawals',a:+e.fee})),e=>e.cat),mx=bc[0][1];
+ const tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`,bb=BANKS.map(b=>[b,fee(fx.filter(e=>e.bank==b)),fx.filter(e=>e.bank==b).length]).filter(x=>x[1]),bc=by(fx.map(e=>({cat:e.cat||(e.t=='t'?'Bank transfers':'Old withdrawals'),a:+e.fee})),e=>e.cat),mx=bc[0][1];
  return `<section class="card"><h2>Transaction fees</h2><p class="m">What you paid to move money, in this period.</p><div class="tiles">${tile('Total fees',N(F))}${tile('Share of all spending',(F/(X+F)*100).toFixed(1)+'%')}${tile('Fees charged',fx.length)}${tile('Average fee',N(F/fx.length))}</div><h3>By bank</h3>${bb.map(([b,v,n])=>`<div class="ln"><span>${b} <small>${n}×</small></span><b>${N(v)}</b></div>`).join('')}<h3>By category</h3>${bc.map(([c,v,n])=>`<div class="srow"><div class="rl"><span>${C[c]?C[c].e+' ':''}${esc(c)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:${C[c]?col(c):'var(--acc)'}"></i></span><small>${n} ${n>1?'fees':'fee'}</small></div>`).join('')}</section>`}
 function vHome(){const L=D.filter(inP),ex=T(L,'x'),I=sum(T(L,'i')),X=sum(ex),F=fee(L),cats=by(ex,e=>e.cat);
  if(!C[S.sel])S.sel=cats[0]?cats[0][0]:CK[0];
- const o=(a,b)=>a.filter(e=>e.bank==b),bal=BANKS.map(b=>{const x=o(T(D,'x'),b),w=o(T(D,'w'),b);return[b,sum(o(T(D,'i'),b))-sum(x)-fee(x)-sum(w)-fee(w)]}),tot=X+F||1;
+ const o=(a,b)=>a.filter(e=>e.bank==b),bal=BANKS.map(b=>[b,bankBal(b)]),tot=X+F||1;
  let h=hdr(1)+`<section class="hero"><span>Spent, ${PL[S.p].toLowerCase()}</span><div class="big">${N(X)}</div>`+(F?`<p style="margin:-6px 0 12px;opacity:.8">plus ${N(F)} in transaction fees</p>`:'')+(cats.length?`<div class="stack">${cats.map(([c,v])=>`<i style="flex:${v};background:${col(c)}"></i>`).join('')}</div><div class="leg">${cats.slice(0,5).map(([c,v])=>`<span data-cat="${esc(c)}" style="cursor:pointer"><i style="background:${col(c)}"></i>${esc(c)} ${Math.round(v/X*100)}%</span>`).join('')}</div>`:'<p>No spending logged for this period yet.</p><button class="btn" data-v="a">Log an expense</button>')+'</section>';
  h+=`<div class="tiles"><div class="t"><small>Income</small><b>${N(I)}</b></div><div class="t"><small>Spent</small><b>${N(X)}</b></div><div class="t"><small>Transaction fees</small><b>${N(F)}</b></div><div class="t"><small>Left in banks</small><b>${N(bal.reduce((a,b)=>a+b[1],0))}</b></div></div>`;
- h+=`<section class="card"><h2>Banks</h2><p class="m">Balance is income received minus everything spent from the bank, fees included, all time. Bars show where this period's money came from.</p>${bal.map(([b,v])=>{const x=o(ex,b),t=sum(x)+fee(x);return `<div class="srow"><div class="rl"><span>${b}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${t/tot*100}%;background:var(--pri)"></i></span><small>This period: ${N(sum(x))} spent${fee(x)?', '+N(fee(x))+' in fees':''}</small></div>`}).join('')}</section>`;
+ h+=`<section class="card"><h2>Banks</h2><p class="m">Balance is income and transfers in, minus spending, transfers out and fees, all time. Bars show where this period's money came from.</p>${bal.map(([b,v])=>{const x=o(ex,b),t=sum(x)+fee(x),tin=sum(T(L,'t').filter(e=>e.to_bank==b)),tout=sum(o(T(L,'t'),b));return `<div class="srow"><div class="rl"><span>${b}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${t/tot*100}%;background:var(--pri)"></i></span><small>This period: ${N(sum(x))} spent${fee(x)?', '+N(fee(x))+' in fees':''}${tin?', '+N(tin)+' transferred in':''}${tout?', '+N(tout)+' transferred out':''}</small></div>`}).join('')}</section>`;
  if(cats.length)h+=`<section class="card"><h2>Spending by category</h2><p class="m">Tap a slice or a bar to see its subcategories below.</p>${donut(cats,X)}<div style="margin-top:14px">${cats.map(([c,v,n])=>`<button class="crow" data-cat="${esc(c)}"><span class="rl"><span>${C[c].e} ${esc(c)}</span><b>${N(v)}</b></span><span class="tr"><i style="width:${v/cats[0][1]*100}%;background:${col(c)}"></i></span><small>${Math.round(v/X*100)}% of spending, ${n} ${n>1?'entries':'entry'}</small></button>`).join('')}</div></section>`;
  h+=`<section class="card"><h2>Last 6 months by category</h2><p class="m">Each bar is one month of spending, split by category.</p>${stacked()}</section>`;
  return h+feeCard(L)+subCard(ex,X)}
 function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
  const ch=(key,arr,cur)=>`<div class="chips">${arr.map(x=>`<button class="chip ${cur==x?'on':''}" data-set="${key}=${x}">${x}</button>`).join('')}</div>`;
- let h=hdr()+`<div class="seg">${[['x','Expense'],['i','Income']].map(([a,b])=>`<button class="${k==a?'on':''}" data-set="k=${a}">${b}</button>`).join('')}</div>`;
+ let h=hdr()+`<div class="seg">${[['x','Expense'],['i','Income'],['t','Transfer']].map(([a,b])=>`<button class="${k==a?'on':''}" data-set="k=${a}">${b}</button>`).join('')}</div>`;
  if(k=='i')h+='<label>Income source</label>'+ch('src',SRC,f.src)+(f.src=='Other'?`<label>Where did it come from?</label><input data-f="note" value="${esc(f.note)}" placeholder="e.g. Gift, refund, loan">`:'')+'<label>Received into</label>'+ch('bank',BANKS,f.bank);
+  else if(k=='t')h+='<label>From (bank)</label>'+ch('bank',BANKS,f.bank)+avail(f.bank)+'<label>To (bank)</label>'+ch('to',BANKS,f.to);
   else{h+=`<label>Category</label><div class="chips">${CK.map(x=>`<button class="chip ${f.cat==x?'on':''}" data-set="cat=${x}">${C[x].e} ${x}</button>`).join('')}</div>`;
   h+='<label>Paid from (bank)</label>'+ch('bank',BANKS,f.bank)+`<small style="display:block;margin-top:6px;color:var(--mut)">Available in ${f.bank}: <b style="color:${bankBal(f.bank)>0?'var(--pos)':'var(--neg)'}">${N(bankBal(f.bank))}</b></small>`;
   if(c.s)h+='<label>'+(c.sl||'Item')+'</label>'+(c.dd?dd('sub',c.s,f.sub,'Choose a platform'):ch('sub',c.s,f.sub));
@@ -139,25 +140,29 @@ function vAdd(){const f=S.f,k=f.k,c=C[f.cat];
    else if(f.val=='Other')h+=`<label>${c.pl}</label><input data-f="note" value="${esc(f.note)}" placeholder="e.g. 3GB">`}
   if(c.q)h+=`<label>${c.ql}</label><input data-f="q" inputmode="decimal" value="${esc(f.q)}" placeholder="0">`;
   if(!c.p)h+=`<label>${c.f||'Note (optional)'}</label><input data-f="note" value="${esc(f.note)}" placeholder="${c.f?'Type here':'e.g. bought at the market'}">`+(c.rs?`<label>Reason</label><input data-f="reason" value="${esc(f.reason)}" placeholder="Why did you travel?">`:'')}
- h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k=='x'?`<label>Transaction fee (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'withdrawal'}</button>`;
+ h+=`<label>Amount (₦)</label><input class="amt" data-f="a" inputmode="decimal" value="${esc(f.a)}" placeholder="0">${k!='i'?`<label>Transaction fee (₦, optional)</label><input data-f="fee" inputmode="decimal" value="${esc(f.fee)}" placeholder="0">`:''}<div class="two"><div><label>Date</label><input type="date" data-f="d" value="${f.d}"></div><div><label>Time</label><input type="time" data-f="tm" value="${f.tm}"></div></div><button class="btn" data-act="save">Save ${k=='x'?'expense':k=='i'?'income':'transfer'}</button>`;
  return h}
-const bankBal=b=>{const o=a=>a.filter(e=>e.bank==b),x=o(T(D,'x')),w=o(T(D,'w'));return sum(o(T(D,'i')))-sum(x)-fee(x)-sum(w)-fee(w)};
+const bankBal=b=>{const o=a=>a.filter(e=>e.bank==b),x=o(T(D,'x')),w=o(T(D,'w')),tf=o(T(D,'t')),ti=T(D,'t').filter(e=>e.to_bank==b);return sum(o(T(D,'i')))+sum(ti)-sum(x)-fee(x)-sum(w)-fee(w)-sum(tf)-fee(tf)};
+const avail=b=>`<small style="display:block;margin-top:6px;color:var(--mut)">Available in ${b}: <b style="color:${bankBal(b)>0?'var(--pos)':'var(--neg)'}">${N(bankBal(b))}</b></small>`;
 function add(){const f=S.f,a=parseFloat(String(f.a).replace(/,/g,''));if(!(a>0))return toast('Enter an amount');
  const e={id:Date.now()+Math.random().toString(36).slice(2,5),t:f.k,d:f.d||dt(),tm:f.tm||tm(),a};
  if(f.k=='i'){e.src=f.src;e.bank=f.bank;if(f.src=='Other'){e.src=f.note.trim();if(!e.src)return toast('Enter where the money came from')}}
+ else if(f.k=='t'){if(f.bank==f.to)return toast('Choose two different banks');e.bank=f.bank;e.to_bank=f.to;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe}
  else{const c=C[f.cat];if(c.s&&!f.sub)return toast(c.dd?'Choose a platform':'Pick an item');e.cat=f.cat;e.sub=f.sub;e.bank=f.bank;const fe=parseFloat(String(f.fee).replace(/,/g,''));if(fe>0)e.fee=fe;if(c.q){e.q=parseFloat(f.q);if(!(e.q>0))return toast(c.ql)}e.note=f.note.trim();if(c.rs&&f.reason.trim())e.reason=f.reason.trim();if(c.req&&!e.note)return toast(c.f)}
- if(f.k=='x'){const bl=bankBal(e.bank),need=e.a+(e.fee||0);if(bl<=0)return toast(e.bank+' has no funds. Add income to it first.');if(need>bl)return toast('Not enough in '+e.bank+'. Available: '+N(bl)+', needed: '+N(need))}
+ if(f.k=='x'||f.k=='t'){const bl=bankBal(e.bank),need=e.a+(e.fee||0);if(bl<=0)return toast(e.bank+' has no funds. Add income to it first.');if(need>bl)return toast('Not enough in '+e.bank+'. Available: '+N(bl)+', needed: '+N(need))}
  D.push(e);sb.from('entries').insert(e).then(r=>{if(r.error)toast('Not saved: '+r.error.message)});f.a='';f.q='';f.note='';f.fee='';f.reason='';toast('Saved')}
 const VALS=[...new Set(Object.values(PLN).flatMap(o=>Object.keys(o)))],fd=x=>{const[y,m,d]=x.split('-');return +d+' '+MN[+m-1]+' '+y};
 const parsePlan=n=>{n=n||'';const i=n.lastIndexOf(' '),v=i>0?n.slice(i+1):'',f=VALS.find(x=>x.toLowerCase()==v);return f?{plan:n.slice(0,i),val:f}:{plan:n||'–',val:'–'}};
 function rpset(k,v){const R=S.rp;R[k]=v;if(k=='type'){R.cat=R.sub=R.val=R.who=R.src=''}if(k=='cat')R.sub=R.val=R.who=''}
 function rpRows(){const R=S.rp;let a=D.filter(inP);
  if(R.type=='income'){a=T(a,'i');if(R.src)a=a.filter(e=>e.src==R.src)}
+ else if(R.type=='transfer')a=T(a,'t');
  else{a=T(a,'x');if(R.cat!='*')a=a.filter(e=>e.cat==R.cat);if(R.sub)a=a.filter(e=>e.sub==R.sub);if(R.val)a=a.filter(e=>parsePlan(e.note).val==R.val);if(R.who)a=a.filter(e=>e.note==R.who)}
- if(R.bank)a=a.filter(e=>e.bank==R.bank);
+ if(R.bank)a=a.filter(e=>e.bank==R.bank||(R.type=='transfer'&&e.to_bank==R.bank));
  return a.sort((x,y)=>(y.d+y.tm).localeCompare(x.d+x.tm))}
 function rpCols(rows){const R=S.rp,c=R.cat,ci=C[c]||{},B=['Bank',e=>e.bank||'–'];let k;
  if(R.type=='income')k=[['Income source',e=>e.src||'–'],B];
+ else if(R.type=='transfer')k=[['From',e=>e.bank||'–'],['To',e=>e.to_bank||'–']];
  else if(c=='*')k=[['Category',e=>(C[e.cat]?C[e.cat].e+' ':'')+e.cat],['Subcategory',e=>e.sub||e.note||'–'],B];
  else if(c=='Data')k=[['Network',e=>e.sub||'–'],['Validity',e=>parsePlan(e.note).val],['Plan',e=>parsePlan(e.note).plan],B];
  else if(c=='Transport')k=[['Type',e=>e.sub||'–'],['Destination',e=>e.note||'–'],['Reason',e=>e.reason||'–'],B];
@@ -166,24 +171,24 @@ function rpCols(rows){const R=S.rp,c=R.cat,ci=C[c]||{},B=['Bank',e=>e.bank||'–
  else if(ci.s)k=[[ci.sl||'Subcategory',e=>e.sub||'–'],B];
  else if(ci.q)k=[[ci.q,e=>e.q||'–'],B];
  else k=[[(ci.f||'Details').replace('?',''),e=>e.note||'–'],B];
- k.push(['Amount',e=>N(e.a),1]);if(R.type=='expense'&&rows.some(e=>e.fee>0))k.push(['Fee',e=>e.fee?N(e.fee):'–',1]);
+ k.push(['Amount',e=>N(e.a),1]);if(R.type!='income'&&rows.some(e=>e.fee>0))k.push(['Fee',e=>e.fee?N(e.fee):'–',1]);
  k.push(['Date',e=>fd(e.d)],['Time',e=>e.tm||'–']);return k}
 function vRep(){const R=S.rp,c=R.cat,ci=C[c]||{};
- let h=hdr(1)+`<section class="card"><h2>Build a report</h2><p class="m">Choose what to look at. The report appears once your selections are made.</p><label style="margin-top:0">Type</label><div class="chips">${[['income','Income'],['expense','Expense']].map(([k,v])=>`<button class="chip${R.type==k?' on':''}" data-rp="type=${k}">${v}</button>`).join('')}</div>`;
+ let h=hdr(1)+`<section class="card"><h2>Build a report</h2><p class="m">Choose what to look at. The report appears once your selections are made.</p><label style="margin-top:0">Type</label><div class="chips">${[['income','Income'],['expense','Expense'],['transfer','Transfer']].map(([k,v])=>`<button class="chip${R.type==k?' on':''}" data-rp="type=${k}">${v}</button>`).join('')}</div>`;
  if(R.type=='income'){const srcs=[...new Set(SRC.filter(x=>x!='Other').concat(T(D,'i').map(e=>e.src).filter(Boolean)))].sort((a,b)=>a.localeCompare(b));h+='<label>Income source</label>'+dd('rp.src',[['','All sources']].concat(srcs),R.src,'All sources')}
  if(R.type=='expense'){h+='<label>Category</label>'+dd('rp.cat',[['*','All categories']].concat(CK.map(k=>[k,C[k].e+' '+k])),c,'Choose a category');
   if(c&&c!='*'){if(ci.s)h+=`<label>${ci.sl||'Subcategory'}</label>`+dd('rp.sub',[['','All']].concat(ci.s),R.sub,'All');
    if(c=='Data')h+='<label>Validity</label>'+dd('rp.val',[['','All']].concat(VALS),R.val,'All');
    else if(ci.p)h+=`<label>${ci.pl.replace('?','')}</label>`+dd('rp.who',[['','All']].concat([...new Set(Object.values(ci.p).flat())]),R.who,'All')}}
- const ready=R.type=='income'||(R.type=='expense'&&c);
+ const ready=R.type=='income'||R.type=='transfer'||(R.type=='expense'&&c);
  if(ready)h+='<label>Bank</label><div class="chips">'+['',...BANKS].map(b=>`<button class="chip${R.bank==b?' on':''}" data-rp="bank=${b}">${b||'All banks'}</button>`).join('')+'</div>';
  h+='</section>';
  if(!ready)return h+'<div class="empty">Pick Income, or Expense and a category, to load the report.</div>';
  const rows=rpRows(),per=S.p=='c'?fd(rng()[0])+' to '+fd(rng()[1]):PL[S.p];
  if(!rows.length)return h+`<div class="empty">No ${R.type} entries match these filters for ${per.toLowerCase()}.</div>`;
- const tot=sum(rows),F=fee(rows),ex=R.type=='expense',cols=rpCols(rows),tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`;
- const gk=e=>!ex?e.src:c=='*'?e.cat:(ci.p&&c!='Data')?(e.note||c):(e.sub||e.note||c),gr=by(rows,gk).slice(0,8),bk=by(rows,e=>e.bank||'No bank'),mx=gr[0][1];
- h+=`<section class="card"><h2>${ex?(c=='*'?'All expenses':C[c].e+' '+esc(c)):'Income'}</h2><p class="m">${esc(per)}${R.bank?', '+R.bank:''}</p><div class="tiles" style="margin-bottom:0">${tile('Total',N(tot))}${tile('Entries',rows.length)}${tile('Average',N(tot/rows.length))}${ex?tile('Transaction fees',N(F)):tile('Largest',N(Math.max(...rows.map(e=>e.a))))}</div></section>`;
+ const tot=sum(rows),F=fee(rows),ex=R.type!='income',cols=rpCols(rows),tile=(a,b)=>`<div class="t"><small>${a}</small><b>${b}</b></div>`;
+ const gk=e=>R.type=='transfer'?e.bank+' to '+e.to_bank:!ex?e.src:c=='*'?e.cat:(ci.p&&c!='Data')?(e.note||c):(e.sub||e.note||c),gr=by(rows,gk).slice(0,8),bk=by(rows,e=>e.bank||'No bank'),mx=gr[0][1];
+ h+=`<section class="card"><h2>${R.type=='transfer'?'Bank transfers':ex?(c=='*'?'All expenses':C[c].e+' '+esc(c)):'Income'}</h2><p class="m">${esc(per)}${R.bank?', '+R.bank:''}</p><div class="tiles" style="margin-bottom:0">${tile('Total',N(tot))}${tile('Entries',rows.length)}${tile('Average',N(tot/rows.length))}${ex?tile('Transaction fees',N(F)):tile('Largest',N(Math.max(...rows.map(e=>e.a))))}</div></section>`;
  h+=`<section class="card"><h2>Breakdown</h2>${gr.map(([n,v,k])=>`<div class="srow"><div class="rl"><span>${esc(n)}</span><b>${N(v)}</b></div><span class="tr"><i style="width:${v/mx*100}%;background:var(--pri)"></i></span><small>${Math.round(v/tot*100)}%, ${k} ${k>1?'entries':'entry'}</small></div>`).join('')}<h3>By bank</h3>${bk.map(([b,v,k])=>`<div class="ln"><span>${esc(b)} <small>${k}×</small></span><b>${N(v)}</b></div>`).join('')}</section>`;
  h+=`<section class="card"><h2>Entries</h2><div class="tw"><table class="rt"><thead><tr>${cols.map(([t,,n])=>`<th class="${n?'r':''}">${t}</th>`).join('')}</tr></thead><tbody>${rows.map(e=>`<tr>${cols.map(([,f,n])=>`<td class="${n?'r':''}">${esc(f(e))}</td>`).join('')}</tr>`).join('')}</tbody><tfoot><tr>${cols.map(([t,,n],i)=>`<td class="${n?'r':''}">${i==0?'Total':t=='Amount'?N(tot):t=='Fee'?N(F):''}</td>`).join('')}</tr></tfoot></table></div></section>`;
  return h}
