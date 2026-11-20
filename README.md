@@ -2,7 +2,7 @@
 
 > Every naira, traced to where it went.
 
-A mobile-first personal finance web app for recording income and expenses, tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so your records are stored in your own account and sync across your phone and laptop.
+A mobile-first personal finance web app for recording income and expenses in naira (₦), tracking what is left in each bank account, and seeing in detail where the money goes. It is a single static page backed by a Supabase database, so your records are stored in your own account and sync across your phone and laptop.
 
 ## Contents
 
@@ -22,9 +22,10 @@ A mobile-first personal finance web app for recording income and expenses, track
 ## Features
 
 - **Sign in with email and password** (Supabase Auth), with a show/hide password button. Each user only ever sees their own records.
-- **Two entry types:** expenses and income, each with date and time.
+- **Three entry types:** expenses, income and bank-to-bank transfers, each with date and time.
 - **Bank-aware expenses:** every expense records the bank it was paid from (UBA, Stanbic IBTC or Opay) and an optional transaction fee.
-- **Balance protection:** an expense cannot be saved from a bank with no funds, or for more than the bank holds (amount plus fee).
+- **Bank transfers:** move money between your own accounts, with an optional transfer fee. Balances update on both banks.
+- **Balance protection:** an expense or transfer cannot be saved from a bank with no funds, or for more than the bank holds (amount plus fee).
 - **Detailed categories** with subcategories, and extra inputs where they matter (network and plan for data, bags of water, kilograms of gas, and more).
 - **Home dashboard** with charts, bank balances, a transaction fee report and a subcategory breakdown.
 - **Reports tab** where you build a report by picking filters. It loads only after you have made your selections.
@@ -70,10 +71,11 @@ Choosing **Other** shows a text box. What you type is saved as the income source
 
 The app has no separate withdrawal step. Expenses are paid straight from a bank, and balances follow from that.
 
-- **Bank balance** = income received into the bank − expenses paid from it − transaction fees on those expenses.
+- **Bank balance** = income received into the bank + transfers in − expenses paid from it − transfers out − transaction fees on expenses and transfers.
 - **Left in banks** is the sum of the three balances.
 - **Spent** counts expense amounts only. **Transaction fees** are tracked and reported separately, so you can see how much you pay just to move money. They are never mixed into category totals.
-- **Funds check:** when you save an expense the app compares amount plus fee with the bank's balance. It shows the balance under the bank pills while you fill in the form.
+- **Transfers** are not spending: they move money between banks and only their fees count as a cost. A transfer needs two different banks.
+- **Funds check:** when you save an expense or a transfer the app compares amount plus fee with the paying bank's balance. It shows the balance under the bank pills while you fill in the form.
 - **Older withdrawal entries** (the app used to have a Withdraw entry type) still count against the bank they came from, and their fees show up as "Old withdrawals" in the fee report. Older expenses saved before banks were recorded appear in category charts but not in any bank's figures.
 - Balances are calculated on all-time data, whatever the entry dates are. The period filter only affects the spending figures and charts.
 
@@ -94,6 +96,7 @@ Top to bottom:
 
 Choose what you want to see, and the report appears once the required selections are made.
 
+- **Transfer:** every bank-to-bank transfer, with From, To, Amount, Fee, Date and Time. The bank filter matches either side.
 - **Income:** optionally filter by income source and bank. The table shows income source, bank, amount, date and time.
 - **Expense:** choose a category (or **All categories**), optionally narrow it, and filter by bank. The table adapts to the category:
 
@@ -118,12 +121,13 @@ All records live in one table, `entries`, with row level security so each user o
 | --- | --- | --- |
 | `id` | text | Primary key, generated in the app |
 | `user_id` | uuid | Owner, filled in by Supabase (`auth.uid()`) |
-| `t` | text | Entry type: `i` income, `x` expense, `w` withdrawal (legacy, no longer created) |
+| `t` | text | Entry type: `i` income, `x` expense, `t` transfer, `w` withdrawal (legacy, no longer created) |
 | `d` | date | Date of the entry |
 | `tm` | text | Time as `HH:MM` |
 | `a` | numeric | Amount in naira |
 | `src` | text | Income source (or the text typed for **Other**) |
-| `bank` | text | Bank received into (income) or paid from (expense) |
+| `bank` | text | Bank received into (income), paid from (expense) or sent from (transfer) |
+| `to_bank` | text | Receiving bank of a transfer |
 | `cat` | text | Expense category |
 | `sub` | text | Subcategory, network or platform |
 | `q` | numeric | Quantity: bags of water or kilograms of gas |
